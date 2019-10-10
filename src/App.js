@@ -1,26 +1,58 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, {Component} from 'react';
+import {Grid} from '@material-ui/core';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+import {SearchBar, VideoDetails, VideoList} from './components';
+import youtube from './youtube/api';
+
+export default class App extends Component {
+    state = {
+        videos: [],
+        selectedVideo: null
+    };
+
+    componentDidMount() {
+        this.handleSubmit('javascript')
+    }
+
+    handleSubmit = async (searchTerms) => {
+        const response = await youtube.get('search', {
+            params: {
+                part: 'snippet',
+                maxResults: 15,
+                q: searchTerms,
+                key: '[API_KEY]'
+            }
+        });
+        this.setState({
+            videos: response.data.items,
+            selectedVideo: response.data.items[1]
+        });
+    };
+    onVideoSelect = (video) => {
+        this.setState({
+            selectedVideo: video
+        });
+    };
+
+    render() {
+        const {selectedVideo} = this.state;
+        const {videos} = this.state;
+        return (
+            <Grid justify="center" container spacing={10}>
+                <Grid item xs={12}>
+                    <Grid container spacing={10}>
+                        <Grid item xs={12}>
+                            <SearchBar onFormSubmit={this.handleSubmit}/>
+                        </Grid>
+                        <Grid item xs={8} style={{height: '915px'}}>
+                            <VideoDetails video={selectedVideo}/>
+                        </Grid>
+                        <Grid item xs={4}>
+                            <VideoList onVideoSelect={this.onVideoSelect} videos={videos}/>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </Grid>
+        );
+    }
 }
-
-export default App;
